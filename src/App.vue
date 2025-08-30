@@ -1,19 +1,16 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import RegisterForm from './components/RegisterForm.vue';
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+  <main class="container">
+    <div class="my-5 row justify-content-center">
+      <div class="row justify-content-center">
+        <div class="col col-md-7 col-lg-5">
+          <RegisterForm />
+        </div>
+      </div>
     </div>
-  </header>
-
-  <main>
-    <TheWelcome />
   </main>
 </template>
 
