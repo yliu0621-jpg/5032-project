@@ -4,26 +4,23 @@
       Sign Up
     </h4>
     <form class="card-body" @submit.prevent="handleRegister">
-      <label for="username" class="form-label">
-        Username
-      </label>
-      <input class="form-control" type="text" id="username" v-model="formData.username" required>
-      </input>
-      <label for="email" class="form-label">
-        Email
-      </label>
-      <input id="email" type="email" class="form-control" v-model="formData.email" required>
-      </input>
-      <label for="password" class="form-label">
-        Password
-      </label>
-      <input id="password" type="password" class="form-control" v-model="formData.password" required>
-      </input>
-      <label for="conform-password" class="form-label">
-        Confirm Password
-      </label>
-      <input id="conform-password" type="password" class="form-control" v-model="formData.confirm" required>
-      </input>
+      <label for="username" class="form-label">Username</label>
+      <input class="form-control" type="text" id="username" v-model="formData.username" required />
+
+      <label for="email" class="form-label">Email</label>
+      <input id="email" type="email" class="form-control" v-model="formData.email" required />
+
+      <label for="password" class="form-label">Password</label>
+      <input id="password" type="password" class="form-control" v-model="formData.password" required />
+
+      <label for="confirm-password" class="form-label">Confirm Password</label>
+      <input id="confirm-password" type="password" class="form-control" v-model="formData.confirmPassword" required />
+
+      <label for="role" class="form-label">User Role</label>
+      <select id="role" class="form-select" v-model="formData.role" required>
+        <option selected value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
       <button type="submit" class="btn btn-primary mt-3 w-100">
         Register
       </button>
@@ -34,39 +31,45 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
-const auth = getAuth();
+import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { collection, addDoc } from 'firebase/firestore';
+import { auth, db } from '@/firebase';
 const router = useRouter();
 const formData = ref({
   username: '',
   email: '',
   password: '',
-  confirm: ''
+  confirmPassword: '',
+  role: 'user',
 });
 const handleRegister = () => {
+  const { email, password, username, confirmPassword, role } = formData.value;
   // validate form data
-  const usernameLen = formData.value.username.length;
+  const usernameLen = username.length;
   if (usernameLen < 3 || usernameLen > 15) {
     alert('Username must be between 3 and 15 characters');
     return;
   }
-  const passwordLen = formData.value.password.length;
+  const passwordLen = password.length;
   if (passwordLen < 6 || passwordLen > 20) {
     alert('Password must be between 6 and 20 characters');
     return;
   }
-  if (formData.value.password !== formData.value.confirm) {
+  if (password !== confirmPassword) {
     alert('Passwords do not match');
     return;
   }
-  createUserWithEmailAndPassword(auth, formData.value.email, formData.value.password)
-    .then((data) => {
-      console.log("Register Successful");
-      router.push({
-        name: 'display-data',
-        query: { ...formData.value }
-      });
-    }).catch((error) => {
+  createUserWithEmailAndPassword(auth, email, password)
+    .then(() => addDoc(collection(db, "users"), {
+      username: username,
+      email: email,
+      role: role,
+    }))
+    .then(() => router.push({
+      name: 'display-data',
+      query: { ...formData.value }
+    }))
+    .catch((error) => {
       console.error(error.code, error)
     })
 }

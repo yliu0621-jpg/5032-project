@@ -15,7 +15,7 @@
       <input id="password" type="password" class="form-control" v-model="formData.password" required>
       </input>
       <button type="submit" class="btn btn-primary mt-3 w-100">
-        Register
+        Login
       </button>
     </form>
   </div>
@@ -24,13 +24,13 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '@/firebase';
 const router = useRouter();
 const formData = ref({
   email: '',
   password: '',
 });
-const auth = getAuth()
 const handleLogin = () => {
   signInWithEmailAndPassword(auth, formData.value.email, formData.value.password)
     .then((data) => {
