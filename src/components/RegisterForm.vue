@@ -34,6 +34,8 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
+const auth = getAuth();
 const router = useRouter();
 const formData = ref({
   username: '',
@@ -57,9 +59,15 @@ const handleRegister = () => {
     alert('Passwords do not match');
     return;
   }
-  router.push({
-    name: 'display-data',
-    query: { ...formData.value }
-  });
+  createUserWithEmailAndPassword(auth, formData.value.email, formData.value.password)
+    .then((data) => {
+      console.log("Register Successful");
+      router.push({
+        name: 'display-data',
+        query: { ...formData.value }
+      });
+    }).catch((error) => {
+      console.error(error.code, error)
+    })
 }
 </script>
