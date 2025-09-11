@@ -16,6 +16,9 @@
 					<li class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/register">Register</router-link>
 					</li>
+					<li class="nav-item">
+						<router-link class="nav-link" active-class="active" to="/feedback">Feedback</router-link>
+					</li>
 				</ul>
 			</div>
 		</div>

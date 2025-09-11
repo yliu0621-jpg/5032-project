@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import DisplayDataPage from "../components/DisplayDataPage.vue";
 import AuthView from "@/views/AuthView.vue";
 import HomeView from "@/views/HomeView.vue";
+import FeedbackView from "@/views/FeedbackView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -27,6 +28,11 @@ const router = createRouter({
       name: "register",
       component: AuthView,
       props: () => ({ formType: 'register' })
+    },
+    {
+      path: "/feedback",
+      name: "feedback",
+      component: FeedbackView,
     },
   ],
 });
