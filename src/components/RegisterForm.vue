@@ -31,9 +31,8 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { collection, addDoc } from 'firebase/firestore';
-import { auth, db } from '@/firebase';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { auth } from '@/firebase';
 const router = useRouter();
 const formData = ref({
   username: '',
@@ -60,10 +59,8 @@ const handleRegister = () => {
     return;
   }
   createUserWithEmailAndPassword(auth, email, password)
-    .then(() => addDoc(collection(db, "users"), {
-      username: username,
-      email: email,
-      role: role,
+    .then((userCred) => updateProfile(userCred.user, {
+      displayName: `${username}:${role}`
     }))
     .then(() => router.push({
       name: 'display-data',

@@ -10,13 +10,19 @@
 
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav ms-auto">
-					<li class="nav-item">
+					<li v-if="userRole === ''" class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/login">Login</router-link>
 					</li>
-					<li class="nav-item">
+					<li v-if="userRole === ''" class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/register">Register</router-link>
 					</li>
-					<li class="nav-item">
+					<li v-if="userRole !== ''" class="nav-item">
+						<span class="nav-link">{{ getUserName() }}</span>
+					</li>
+					<li v-if="userRole !== ''" class="nav-item">
+						<router-link class="nav-link" active-class="active" to="/logout">Logout</router-link>
+					</li>
+					<li v-if="userRole !== ''" class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/feedback">Feedback</router-link>
 					</li>
 				</ul>
@@ -26,7 +32,16 @@
 </template>
 
 <script setup>
+import { auth, getUserName, getUserRole } from '@/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { onMounted, ref } from 'vue';
+
+const userRole = ref('')
+onMounted(() => {
+	onAuthStateChanged(auth, (user) => {
+		userRole.value = getUserRole(user);
+	});
+})
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

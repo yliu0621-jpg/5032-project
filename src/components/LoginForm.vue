@@ -40,6 +40,7 @@ const handleLogin = () => {
         query: { ...formData.value }
       });
     }).catch((error) => {
+      alert("Password error!")
       console.error(error.code, error)
     })
 }

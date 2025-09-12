@@ -3,6 +3,8 @@ import DisplayDataPage from "../components/DisplayDataPage.vue";
 import AuthView from "@/views/AuthView.vue";
 import HomeView from "@/views/HomeView.vue";
 import FeedbackView from "@/views/FeedbackView.vue";
+import { signOut } from "firebase/auth";
+import { auth } from "@/firebase";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -28,6 +30,15 @@ const router = createRouter({
       name: "register",
       component: AuthView,
       props: () => ({ formType: 'register' })
+    },
+    {
+      path: "/logout",
+      name: "logout",
+      beforeEnter: (to, from, next) => {
+        signOut(auth).then(() => {
+          next({ name: 'home' });
+        })
+      }
     },
     {
       path: "/feedback",

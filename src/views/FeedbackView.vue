@@ -20,37 +20,74 @@
 				</div>
 			</form>
 		</div>
-
+		<table class="table">
+			<thead>
+				<tr>
+					<th scope="col">#</th>
+					<th scope="col">Username</th>
+					<th scope="col">Comment</th>
+					<th scope="col">Rating</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="(feedback, index) in feedbackList" :key="index">
+					<th scope="row">{{ index + 1 }}</th>
+					<td>{{ feedback.username }}</td>
+					<td>{{ feedback.comment }}</td>
+					<td>
+						<Rating v-model="feedback.rating" :read-only="true" />
+					</td>
+				</tr>
+			</tbody>
+		</table>
 	</div>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
 import Rating from '@/components/Rating.vue'
-import { auth, db } from '@/firebase'
+import { auth, db, getUserName, getUserRole } from '@/firebase'
 import { addDoc, collection, getDocs } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
 
 const rating = ref(5)
 const comment = ref('')
-const feedbackList = ref([])
+
+const feedbackList = ref([{
+	username: 'loading',
+	uid: 'loading',
+	rating: 'loading',
+	comment: 'loading',
+}])
+const userRole = ref('')
 
 onMounted(() => {
-	getDocs(collection(db, 'feedback'))
-		.then(snapshot => snapshot.forEach(
-			doc => feedbackList.value.push(doc.data())
-		))
+	onAuthStateChanged(auth, (user) => {
+		userRole.value = getUserRole(user);
+		feedbackList.value = []
+		getDocs(collection(db, 'feedback')).then(snapshot => snapshot.forEach(doc => {
+			const feedback = doc.data();
+			if (feedback.uid === auth.currentUser.uid) {
+				feedbackList.value.push(feedback);
+			}
+		}))
+	});
 })
 
 function handleSubmit() {
-	addDoc(collection(db, 'feedback'), {
-		email: auth.currentUser.email,
+	const feedback = {
+		username: getUserName(),
+		uid: auth.currentUser.uid,
 		rating: rating.value,
 		comment: comment.value
-	}).then(() => {
-		console.log('success');
-	}).catch((error) => {
-		console.error(error);
-	})
+	}
+	addDoc(collection(db, 'feedback'), feedback)
+		.then(() => {
+			alert('Feedback submitted!')
+			feedbackList.value.push(feedback)
+		}).catch((error) => {
+			console.error(error);
+		})
 }
 </script>
 
