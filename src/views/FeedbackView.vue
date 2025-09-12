@@ -23,11 +23,9 @@
 		<div v-if="userRole === 'user'">
 			<h2>Your feedback</h2>
 		</div>
-		<div v-else="userRole === 'admin'">
-			<p>Average Rating: {{
-				(feedbackList.reduce((acc, item) => acc + item.rating, 0) / feedbackList.length).toFixed(2)
-			}}</p>
-		</div>
+		<p>Average Rating: {{
+			(feedbackList.reduce((acc, item) => acc + item.rating, 0) / feedbackList.length).toFixed(2)
+		}}</p>
 		<table class="table">
 			<thead>
 				<tr>
