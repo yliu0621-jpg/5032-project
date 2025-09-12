@@ -2,7 +2,7 @@
 	<div id="app" class="container mt-5">
 		<h1 class="mb-4">Feedback</h1>
 
-		<div class="card mb-4">
+		<div class="card mb-4" v-if="userRole === 'user'">
 			<form @submit.prevent="handleSubmit">
 				<div class="card-header">
 					<div>
@@ -19,6 +19,14 @@
 					<button class="btn btn-primary mx-auto mt-3">Submit</button>
 				</div>
 			</form>
+		</div>
+		<div v-if="userRole === 'user'">
+			<h2>Your feedback</h2>
+		</div>
+		<div v-else="userRole === 'admin'">
+			<p>Average Rating: {{
+				(feedbackList.reduce((acc, item) => acc + item.rating, 0) / feedbackList.length).toFixed(2)
+			}}</p>
 		</div>
 		<table class="table">
 			<thead>
@@ -53,12 +61,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 const rating = ref(5)
 const comment = ref('')
 
-const feedbackList = ref([{
-	username: 'loading',
-	uid: 'loading',
-	rating: 'loading',
-	comment: 'loading',
-}])
+const feedbackList = ref([])
 const userRole = ref('')
 
 onMounted(() => {
@@ -67,7 +70,7 @@ onMounted(() => {
 		feedbackList.value = []
 		getDocs(collection(db, 'feedback')).then(snapshot => snapshot.forEach(doc => {
 			const feedback = doc.data();
-			if (feedback.uid === auth.currentUser.uid) {
+			if (userRole.value === 'admin' || feedback.uid === auth.currentUser.uid) {
 				feedbackList.value.push(feedback);
 			}
 		}))
@@ -84,6 +87,7 @@ function handleSubmit() {
 	addDoc(collection(db, 'feedback'), feedback)
 		.then(() => {
 			alert('Feedback submitted!')
+			comment.value = ''
 			feedbackList.value.push(feedback)
 		}).catch((error) => {
 			console.error(error);

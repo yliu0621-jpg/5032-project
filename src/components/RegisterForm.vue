@@ -63,10 +63,20 @@ const handleRegister = () => {
       displayName: `${username}:${role}`
     }))
     .then(() => router.push({
-      name: 'display-data',
-      query: { ...formData.value }
+      name: 'home',
     }))
     .catch((error) => {
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          alert("Email already exists")
+          break;
+        case 'auth/invalid-email':
+          alert("Invalid Email")
+          break;
+        default:
+          alert("register failed")
+          break;
+      }
       console.error(error.code, error)
     })
 }

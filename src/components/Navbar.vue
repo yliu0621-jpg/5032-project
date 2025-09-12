@@ -17,7 +17,7 @@
 						<router-link class="nav-link" active-class="active" to="/register">Register</router-link>
 					</li>
 					<li v-if="userRole !== ''" class="nav-item">
-						<span class="nav-link">{{ getUserName() }}</span>
+						<span class="nav-link text-body-tertiary">{{ getUserName() }}</span>
 					</li>
 					<li v-if="userRole !== ''" class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/logout">Logout</router-link>

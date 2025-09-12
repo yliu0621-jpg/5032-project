@@ -36,8 +36,7 @@ const handleLogin = () => {
     .then((data) => {
       console.log("Login Successful");
       router.push({
-        name: 'display-data',
-        query: { ...formData.value }
+        name: 'home',
       });
     }).catch((error) => {
       alert("Password error!")
