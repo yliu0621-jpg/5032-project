@@ -26,6 +26,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/firebase';
+import { toast } from '@/utils/toast';
 const router = useRouter();
 const formData = ref({
   email: '',
@@ -34,12 +35,12 @@ const formData = ref({
 const handleLogin = () => {
   signInWithEmailAndPassword(auth, formData.value.email, formData.value.password)
     .then((data) => {
-      console.log("Login Successful");
+      toast.success("Login successful!")
       router.push({
         name: 'home',
       });
     }).catch((error) => {
-      alert("Password error!")
+      toast.error("Login failed!")
       console.error(error.code, error)
     })
 }

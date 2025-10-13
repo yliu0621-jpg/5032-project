@@ -33,6 +33,8 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
 import { auth } from '@/firebase';
+import { toast } from '@/utils/toast';
+
 const router = useRouter();
 const formData = ref({
   username: '',
@@ -46,16 +48,16 @@ const handleRegister = () => {
   // validate form data
   const usernameLen = username.length;
   if (usernameLen < 3 || usernameLen > 15) {
-    alert('Username must be between 3 and 15 characters');
+    toast.warning('Username must be between 3 and 15 characters');
     return;
   }
   const passwordLen = password.length;
   if (passwordLen < 6 || passwordLen > 20) {
-    alert('Password must be between 6 and 20 characters');
+    toast.warning('Password must be between 6 and 20 characters');
     return;
   }
   if (password !== confirmPassword) {
-    alert('Passwords do not match');
+    toast.warning('Passwords do not match');
     return;
   }
   createUserWithEmailAndPassword(auth, email, password)
@@ -68,13 +70,13 @@ const handleRegister = () => {
     .catch((error) => {
       switch (error.code) {
         case 'auth/email-already-in-use':
-          alert("Email already exists")
+          toast.error('Email already exists');
           break;
         case 'auth/invalid-email':
-          alert("Invalid Email")
+          toast.error('Invalid Email');
           break;
         default:
-          alert("register failed")
+          toast.error('Register failed');
           break;
       }
       console.error(error.code, error)

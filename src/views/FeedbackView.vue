@@ -84,7 +84,7 @@ function handleSubmit() {
 	}
 	addDoc(collection(db, 'feedback'), feedback)
 		.then(() => {
-			alert('Feedback submitted!')
+			toast.success('Feedback submitted!')
 			comment.value = ''
 			feedbackList.value.push(feedback)
 		}).catch((error) => {
