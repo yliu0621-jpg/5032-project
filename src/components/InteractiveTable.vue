@@ -8,16 +8,23 @@
             <span class="input-group-text">
               <i class="bi bi-search"></i>
             </span>
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Global search..."
-              v-model="globalSearch"
-              @input="resetPagination"
-            />
+            <input type="text" class="form-control" placeholder="Global search..." v-model="globalSearch"
+              @input="resetPagination" />
           </div>
         </div>
         <div class="col-md-6 text-end">
+          <div class="btn-group me-3" role="group">
+            <button class="btn btn-sm btn-outline-success" @click="exportToJSON" :disabled="filteredData.length === 0"
+              title="Export to JSON">
+              <i class="bi bi-file-earmark-code me-1"></i>
+              JSON
+            </button>
+            <button class="btn btn-sm btn-outline-primary" @click="exportToCSV" :disabled="filteredData.length === 0"
+              title="Export to CSV">
+              <i class="bi bi-file-earmark-spreadsheet me-1"></i>
+              CSV
+            </button>
+          </div>
           <span class="text-muted">
             {{ paginatedData.length }} of {{ filteredData.length }} results
           </span>
@@ -27,10 +34,7 @@
       <!-- Column Search Toggle -->
       <div class="row mb-3" v-if="searchableColumns.length > 0">
         <div class="col-12">
-          <button
-            class="btn btn-sm btn-outline-primary"
-            @click="toggleColumnSearch"
-          >
+          <button class="btn btn-sm btn-outline-primary" @click="toggleColumnSearch">
             <i class="bi bi-funnel me-1"></i>
             {{ showColumnSearch ? 'Hide' : 'Show' }} Column Search
           </button>
@@ -41,18 +45,9 @@
       <div class="row mb-3" v-if="showColumnSearch && searchableColumns.length > 0">
         <div class="col-12">
           <div class="row">
-            <div
-              v-for="column in searchableColumns"
-              :key="column.key"
-              class="col-md-4 mb-2"
-            >
-              <input
-                type="text"
-                class="form-control form-control-sm"
-                :placeholder="`Search ${column.label}...`"
-                v-model="columnSearches[column.key]"
-                @input="resetPagination"
-              />
+            <div v-for="column in searchableColumns" :key="column.key" class="col-md-4 mb-2">
+              <input type="text" class="form-control form-control-sm" :placeholder="`Search ${column.label}...`"
+                v-model="columnSearches[column.key]" @input="resetPagination" />
             </div>
           </div>
         </div>
@@ -63,12 +58,7 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th
-                v-for="column in columns"
-                :key="column.key"
-                @click="sortBy(column.key)"
-                style="cursor: pointer;"
-              >
+              <th v-for="column in columns" :key="column.key" @click="sortBy(column.key)" style="cursor: pointer;">
                 {{ column.label }}
                 <span v-if="sortColumn === column.key" class="ms-1">
                   <i :class="sortOrder === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
@@ -105,7 +95,8 @@
       <div class="d-flex justify-content-between align-items-center mt-3">
         <div class="d-flex align-items-center">
           <label class="me-2">Rows per page:</label>
-          <select class="form-select form-select-sm" style="width: auto;" v-model="rowsPerPage" @change="resetPagination">
+          <select class="form-select form-select-sm" style="width: auto;" v-model="rowsPerPage"
+            @change="resetPagination">
             <option v-for="option in rowsPerPageOptions" :key="option" :value="option">
               {{ option }}
             </option>
@@ -120,12 +111,7 @@
               </button>
             </li>
 
-            <li
-              v-for="page in visiblePages"
-              :key="page"
-              class="page-item"
-              :class="{ active: page === currentPage }"
-            >
+            <li v-for="page in visiblePages" :key="page" class="page-item" :class="{ active: page === currentPage }">
               <button class="page-link" @click="goToPage(page)" v-if="page !== '...'">
                 {{ page }}
               </button>
@@ -345,6 +331,80 @@ const formatCellValue = (value, column) => {
   }
 
   return value
+}
+
+// Export functions
+const exportToJSON = () => {
+  try {
+    // Prepare data for export (exclude internal fields like id if needed)
+    const exportData = filteredData.value.map(row => {
+      const cleanRow = {}
+      props.columns.forEach(column => {
+        cleanRow[column.key] = formatCellValue(row[column.key], column)
+      })
+      return cleanRow
+    })
+
+    // Create JSON string
+    const jsonString = JSON.stringify(exportData, null, 2)
+
+    // Create blob and download
+    const blob = new Blob([jsonString], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `table-data-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    console.log(`Exported ${exportData.length} records to JSON`)
+  } catch (error) {
+    console.error('Error exporting to JSON:', error)
+  }
+}
+
+const exportToCSV = () => {
+  try {
+    // Create CSV headers
+    const headers = props.columns.map(column => column.label)
+
+    // Create CSV data rows
+    const rows = filteredData.value.map(row => {
+      return props.columns.map(column => {
+        let value = formatCellValue(row[column.key], column)
+
+        // Handle values that need to be quoted (commas, quotes, newlines)
+        if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+          // Escape quotes by doubling them
+          value = value.replace(/"/g, '""')
+          // Wrap in quotes
+          return `"${value}"`
+        }
+
+        return value
+      }).join(',')
+    })
+
+    // Combine headers and rows
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' })
+
+    // Create download link
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `table-data-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    console.log(`Exported ${filteredData.value.length} records to CSV`)
+  } catch (error) {
+    console.error('Error exporting to CSV:', error)
+  }
 }
 
 // Watch for data changes
