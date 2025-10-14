@@ -25,6 +25,12 @@
 					<li v-if="userRole !== ''" class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/feedback">Feedback</router-link>
 					</li>
+					<li v-if="userRole === 'user'" class="nav-item">
+						<router-link class="nav-link" active-class="active" to="/mealplan">Meal Plan</router-link>
+					</li>
+					<!-- <li v-if="userRole === 'admin'" class="nav-item">
+						<router-link class="nav-link" active-class="active" to="/dashboard">Dashboard</router-link>
+					</li> -->
 				</ul>
 			</div>
 		</div>

@@ -3,6 +3,7 @@ import DisplayDataPage from "../components/DisplayDataPage.vue";
 import AuthView from "@/views/AuthView.vue";
 import HomeView from "@/views/HomeView.vue";
 import FeedbackView from "@/views/FeedbackView.vue";
+import MealPlanView from "@/views/MealPlanView.vue";
 import EmailVerificationView from "@/views/EmailVerificationView.vue";
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase";
@@ -45,6 +46,11 @@ const router = createRouter({
       path: "/feedback",
       name: "feedback",
       component: FeedbackView,
+    },
+    {
+      path: "/mealplan",
+      name: "mealplan",
+      component: MealPlanView,
     },
     {
       path: "/verify-email",
