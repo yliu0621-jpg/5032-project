@@ -11,7 +11,7 @@
             <input
               type="text"
               class="form-control"
-              placeholder="Search..."
+              placeholder="Global search..."
               v-model="globalSearch"
               @input="resetPagination"
             />

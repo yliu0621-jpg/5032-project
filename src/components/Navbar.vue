@@ -26,7 +26,7 @@
 						<router-link class="nav-link" active-class="active" to="/feedback">Feedback</router-link>
 					</li>
 					<li v-if="userRole === 'user'" class="nav-item">
-						<router-link class="nav-link" active-class="active" to="/mealplan">Meal Plan</router-link>
+						<router-link class="nav-link" active-class="active" to="/meal-management">Meal Management</router-link>
 					</li>
 					<!-- <li v-if="userRole === 'admin'" class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/dashboard">Dashboard</router-link>
