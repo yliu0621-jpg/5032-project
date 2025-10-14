@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -19,6 +20,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Initialize Functions and connect to emulator for development
+export const functions = getFunctions(app);
+if (window.location.hostname === 'localhost') {
+  connectFunctionsEmulator(functions, '127.0.0.1', 5001);
+}
 export function parseUserRole(userString) {
   if (!userString) {
     return { username: '', role: '' };

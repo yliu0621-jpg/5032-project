@@ -23,6 +23,9 @@
 						<router-link class="nav-link" active-class="active" to="/logout">Logout</router-link>
 					</li>
 					<li v-if="userRole !== ''" class="nav-item">
+						<router-link class="nav-link" active-class="active" to="/profile">Profile</router-link>
+					</li>
+					<li v-if="userRole !== ''" class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/feedback">Feedback</router-link>
 					</li>
 					<li v-if="userRole === 'user'" class="nav-item">
