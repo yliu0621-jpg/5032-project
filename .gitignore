@@ -1,3 +1,5 @@
+.firebase
+.runtimeconfig.json
 # Logs
 logs
 *.log

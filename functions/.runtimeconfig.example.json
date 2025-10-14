@@ -1,0 +1,6 @@
+{
+  "sendgrid": {
+    "api_key": "api-key",
+    "from_email": "verified-email"
+  }
+}
