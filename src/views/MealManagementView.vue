@@ -57,6 +57,25 @@
         </div>
       </div>
 
+      <!-- AI Suggestion Section -->
+      <div class="mb-4">
+        <button
+          class="btn btn-outline-primary"
+          @click="getAISuggestions"
+          :disabled="aiLoading"
+        >
+          <i class="bi bi-magic me-2"></i>
+          {{ aiLoading ? 'Getting Suggestions...' : 'AI Nutrition Tips' }}
+        </button>
+
+        <div v-if="aiSuggestions" class="mt-3 p-3 border rounded">
+          <div v-html="parseMarkdown(aiSuggestions)"></div>
+        </div>
+        <div v-else-if="aiLoading" class="mt-3 text-muted">
+          <i class="bi bi-hourglass-split"></i> Analyzing your meals...
+        </div>
+      </div>
+
       <!-- Charts Section -->
       <div class="row mb-4">
         <!-- Nutrition Trend Chart -->
@@ -326,6 +345,7 @@ import { auth } from '@/firebase'
 import { Modal } from 'bootstrap'
 import InteractiveTable from '../components/InteractiveTable.vue'
 import * as echarts from 'echarts'
+import { generateContentStream } from '@/firebase.js'
 import {
   getMealPlans,
   createMealPlan,
@@ -366,6 +386,10 @@ const nutritionTrendChart = ref(null)
 const categoryChart = ref(null)
 const weeklyComparisonChart = ref(null)
 const inventoryChart = ref(null)
+
+// AI suggestion state
+const aiLoading = ref(false)
+const aiSuggestions = ref('')
 
 // Table columns
 const mealColumns = [
@@ -713,6 +737,70 @@ const handleResize = () => {
   categoryChart.value?.resize()
   weeklyComparisonChart.value?.resize()
   inventoryChart.value?.resize()
+}
+
+const parseMarkdown = (text) => {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/• (.*)/g, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/\n/g, '<br>')
+}
+
+
+// AI suggestion function
+const getAISuggestions = async () => {
+  if (meals.value.length === 0) {
+    aiSuggestions.value = 'Please add some meals first to get AI suggestions!'
+    return
+  }
+
+  aiLoading.value = true
+  aiSuggestions.value = ''
+
+  try {
+    // Prepare nutrition data for AI
+    const nutritionSummary = {
+      totalMeals: meals.value.length,
+      totalCalories: weeklyStats.value.totalCalories,
+      totalProtein: weeklyStats.value.totalProtein,
+      totalCarbs: weeklyStats.value.totalCarbs,
+      recentMeals: meals.value.slice(-5).map(meal => ({
+        name: meal.name,
+        category: meal.category,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs
+      }))
+    }
+
+    const prompt = `As a nutrition expert, please analyze this meal data and provide 3-4 simple, actionable suggestions:
+
+Data: ${JSON.stringify(nutritionSummary, null, 2)}
+
+Please provide:
+1. What's going well with their nutrition
+2. Areas for improvement
+3. Simple food recommendations
+4. A brief encouragement
+
+Keep it concise, friendly, and practical. `
+
+    await generateContentStream(
+      prompt,
+      (chunk) => {
+        aiSuggestions.value += chunk
+      },
+      () => {
+        aiLoading.value = false
+      }
+    )
+  } catch (error) {
+    console.error('Error getting AI suggestions:', error)
+    aiSuggestions.value = 'Sorry, I encountered an error while generating suggestions. Please try again later.'
+    aiLoading.value = false
+  }
 }
 
 // Computed properties

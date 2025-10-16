@@ -1,8 +1,9 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
-import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
+import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -13,7 +14,7 @@ const firebaseConfig = {
   projectId: "fit5032-yliu",
   storageBucket: "fit5032-yliu.firebasestorage.app",
   messagingSenderId: "141153786522",
-  appId: "1:141153786522:web:9b8ffeb28cc99016f5dd23"
+  appId: "1:141153786522:web:9b8ffeb28cc99016f5dd23",
 };
 
 // Initialize Firebase
@@ -21,26 +22,41 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
+const ai = getAI(app, { backend: new GoogleAIBackend() });
+const model = getGenerativeModel(ai, { model: "gemini-2.5-flash-lite" });
+
+export async function generateContentStream(prompt, callback, finishCallback) {
+  const result = await model.generateContentStream(prompt);
+
+  for await (const chunk of result.stream) {
+    const chunkText = chunk.text();
+    callback(chunkText);
+  }
+  if (finishCallback) {
+    finishCallback(await result.response);
+  }
+}
+
 // Initialize Functions and connect to emulator for development
 export const functions = getFunctions(app);
-if (window.location.hostname === 'localhost') {
-  connectFunctionsEmulator(functions, '127.0.0.1', 5001);
+if (window.location.hostname === "localhost") {
+  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
 }
 export function parseUserRole(userString) {
   if (!userString) {
-    return { username: '', role: '' };
+    return { username: "", role: "" };
   }
   let username = userString;
-  let role = 'user';
+  let role = "user";
 
-  const lastColonIndex = userString.lastIndexOf(':');
+  const lastColonIndex = userString.lastIndexOf(":");
 
   if (lastColonIndex !== -1) {
     // `username:role`
     const potentialUsername = userString.substring(0, lastColonIndex);
     const potentialRole = userString.substring(lastColonIndex + 1);
 
-    if (potentialRole === 'admin' || potentialRole === 'user') {
+    if (potentialRole === "admin" || potentialRole === "user") {
       username = potentialUsername;
       role = potentialRole;
     }
@@ -50,15 +66,15 @@ export function parseUserRole(userString) {
 }
 export function getUserName(user) {
   if (user) {
-    return parseUserRole(user?.displayName).username
+    return parseUserRole(user?.displayName).username;
   } else {
-    return parseUserRole(auth.currentUser?.displayName).username
+    return parseUserRole(auth.currentUser?.displayName).username;
   }
 }
 export function getUserRole(user) {
   if (user) {
-    return parseUserRole(user?.displayName).role
+    return parseUserRole(user?.displayName).role;
   } else {
-    return parseUserRole(auth.currentUser?.displayName).role
+    return parseUserRole(auth.currentUser?.displayName).role;
   }
 }
