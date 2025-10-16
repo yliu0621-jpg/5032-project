@@ -10,6 +10,9 @@
 
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav ms-auto">
+					<li class="nav-item">
+						<span class="nav-link text-body-tertiary">{{ isOnline ? '🟢 Online' : '🔴 Offline' }}</span>
+					</li>
 					<li v-if="userRole === ''" class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/login">Login</router-link>
 					</li>
@@ -43,13 +46,31 @@
 <script setup>
 import { auth, getUserName, getUserRole } from '@/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 const userRole = ref('')
+const isOnline = ref(navigator.onLine)
+
+// Update network status
+const updateOnlineStatus = () => {
+	isOnline.value = navigator.onLine
+}
+
 onMounted(() => {
+	// Listen for auth changes
 	onAuthStateChanged(auth, (user) => {
 		userRole.value = getUserRole(user);
 	});
+
+	// Listen for network status changes
+	window.addEventListener('online', updateOnlineStatus)
+	window.addEventListener('offline', updateOnlineStatus)
+})
+
+onUnmounted(() => {
+	// Clean up event listeners
+	window.removeEventListener('online', updateOnlineStatus)
+	window.removeEventListener('offline', updateOnlineStatus)
 })
 </script>
 
