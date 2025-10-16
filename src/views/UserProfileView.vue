@@ -30,7 +30,7 @@
                   </p>
                 </div>
                 <div class="col-md-6">
-                  <p><strong>Display Name:</strong> {{ user.displayName || 'Not set' }}</p>
+                  <p><strong>Role:</strong> {{ user.displayName.split(':')[1] || 'Unknown' }}</p>
                   <p><strong>Account Created:</strong> {{ formatDate(user.metadata.creationTime) }}</p>
                   <p><strong>Last Sign In:</strong> {{ formatDate(user.metadata.lastSignInTime) }}</p>
                 </div>

@@ -57,6 +57,60 @@
         </div>
       </div>
 
+      <!-- Charts Section -->
+      <div class="row mb-4">
+        <!-- Nutrition Trend Chart -->
+        <div class="col-lg-8 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Nutrition Trends Over Time</h5>
+            </div>
+            <div class="card-body">
+              <div id="nutritionTrendChart" style="height: 400px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meal Category Distribution -->
+        <div class="col-lg-4 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Meal Category Distribution</h5>
+            </div>
+            <div class="card-body">
+              <div id="categoryChart" style="height: 400px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Charts Row -->
+      <div class="row mb-4">
+        <!-- Weekly Nutrition Comparison -->
+        <div class="col-lg-6 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Weekly Nutrition Comparison</h5>
+            </div>
+            <div class="card-body">
+              <div id="weeklyComparisonChart" style="height: 350px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ingredient Inventory Status -->
+        <div class="col-lg-6 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Ingredient Inventory Status</h5>
+            </div>
+            <div class="card-body">
+              <div id="inventoryChart" style="height: 350px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Meal Plans Table -->
       <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -267,10 +321,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick, watch } from 'vue'
 import { auth } from '@/firebase'
 import { Modal } from 'bootstrap'
 import InteractiveTable from '../components/InteractiveTable.vue'
+import * as echarts from 'echarts'
 import {
   getMealPlans,
   createMealPlan,
@@ -306,6 +361,12 @@ const ingredientModalElement = ref(null)
 const mealModal = ref(null)
 const ingredientModal = ref(null)
 
+// Chart instances
+const nutritionTrendChart = ref(null)
+const categoryChart = ref(null)
+const weeklyComparisonChart = ref(null)
+const inventoryChart = ref(null)
+
 // Table columns
 const mealColumns = [
   { key: 'date', label: 'Date' },
@@ -339,6 +400,321 @@ const ingredientSearchableColumns = [
   { key: 'category', label: 'Category' }
 ]
 
+// Chart initialization functions
+const initializeCharts = () => {
+  nextTick(() => {
+    initializeNutritionTrendChart()
+    initializeCategoryChart()
+    initializeWeeklyComparisonChart()
+    initializeInventoryChart()
+  })
+}
+
+const initializeNutritionTrendChart = () => {
+  const chartDom = document.getElementById('nutritionTrendChart')
+  if (!chartDom) return
+
+  nutritionTrendChart.value = echarts.init(chartDom)
+  updateNutritionTrendChart()
+}
+
+const updateNutritionTrendChart = () => {
+  if (!nutritionTrendChart.value || meals.value.length === 0) return
+
+  const sortedMeals = [...meals.value].sort((a, b) => new Date(a.date) - new Date(b.date))
+  const dates = [...new Set(sortedMeals.map(meal => meal.date))].sort()
+
+  const nutritionData = dates.map(date => {
+    const dayMeals = sortedMeals.filter(meal => meal.date === date)
+    return {
+      calories: dayMeals.reduce((sum, meal) => sum + (meal.calories || 0), 0),
+      protein: dayMeals.reduce((sum, meal) => sum + (meal.protein || 0), 0),
+      carbs: dayMeals.reduce((sum, meal) => sum + (meal.carbs || 0), 0)
+    }
+  })
+
+  const option = {
+    title: {
+      text: 'Daily Nutrition Intake',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross'
+      }
+    },
+    legend: {
+      data: ['Calories', 'Protein (g)', 'Carbs (g)'],
+      top: 30
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    toolbox: {
+      feature: {
+        saveAsImage: {}
+      }
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: dates
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        name: 'Calories',
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        data: nutritionData.map(d => d.calories),
+        itemStyle: {
+          color: '#28a745'
+        }
+      },
+      {
+        name: 'Protein (g)',
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        data: nutritionData.map(d => d.protein),
+        itemStyle: {
+          color: '#17a2b8'
+        }
+      },
+      {
+        name: 'Carbs (g)',
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        data: nutritionData.map(d => d.carbs),
+        itemStyle: {
+          color: '#ffc107'
+        }
+      }
+    ]
+  }
+
+  nutritionTrendChart.value.setOption(option)
+}
+
+const initializeCategoryChart = () => {
+  const chartDom = document.getElementById('categoryChart')
+  if (!chartDom) return
+
+  categoryChart.value = echarts.init(chartDom)
+  updateCategoryChart()
+}
+
+const updateCategoryChart = () => {
+  if (!categoryChart.value || meals.value.length === 0) return
+
+  const categoryCount = meals.value.reduce((acc, meal) => {
+    acc[meal.category] = (acc[meal.category] || 0) + 1
+    return acc
+  }, {})
+
+  const data = Object.entries(categoryCount).map(([category, count]) => ({
+    name: category.charAt(0).toUpperCase() + category.slice(1),
+    value: count
+  }))
+
+  const option = {
+    title: {
+      text: 'Meals by Category',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{a} <br/>{b}: {c} ({d}%)'
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left'
+    },
+    series: [
+      {
+        name: 'Meal Categories',
+        type: 'pie',
+        radius: '50%',
+        data: data,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  }
+
+  categoryChart.value.setOption(option)
+}
+
+const initializeWeeklyComparisonChart = () => {
+  const chartDom = document.getElementById('weeklyComparisonChart')
+  if (!chartDom) return
+
+  weeklyComparisonChart.value = echarts.init(chartDom)
+  updateWeeklyComparisonChart()
+}
+
+const updateWeeklyComparisonChart = () => {
+  if (!weeklyComparisonChart.value || meals.value.length === 0) return
+
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const today = new Date()
+  const weekData = weekDays.map((day, index) => {
+    const date = new Date(today)
+    date.setDate(today.getDate() - today.getDay() + index)
+    const dateStr = date.toISOString().split('T')[0]
+
+    const dayMeals = meals.value.filter(meal => meal.date === dateStr)
+    return {
+      day,
+      calories: dayMeals.reduce((sum, meal) => sum + (meal.calories || 0), 0),
+      protein: dayMeals.reduce((sum, meal) => sum + (meal.protein || 0), 0),
+      carbs: dayMeals.reduce((sum, meal) => sum + (meal.carbs || 0), 0)
+    }
+  })
+
+  const option = {
+    title: {
+      text: 'This Week\'s Nutrition',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'shadow'
+      }
+    },
+    legend: {
+      data: ['Calories', 'Protein (g)', 'Carbs (g)'],
+      top: 30
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: weekData.map(d => d.day)
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        name: 'Calories',
+        type: 'bar',
+        data: weekData.map(d => d.calories),
+        itemStyle: {
+          color: '#28a745'
+        }
+      },
+      {
+        name: 'Protein (g)',
+        type: 'bar',
+        data: weekData.map(d => d.protein),
+        itemStyle: {
+          color: '#17a2b8'
+        }
+      },
+      {
+        name: 'Carbs (g)',
+        type: 'bar',
+        data: weekData.map(d => d.carbs),
+        itemStyle: {
+          color: '#ffc107'
+        }
+      }
+    ]
+  }
+
+  weeklyComparisonChart.value.setOption(option)
+}
+
+const initializeInventoryChart = () => {
+  const chartDom = document.getElementById('inventoryChart')
+  if (!chartDom) return
+
+  inventoryChart.value = echarts.init(chartDom)
+  updateInventoryChart()
+}
+
+const updateInventoryChart = () => {
+  if (!inventoryChart.value || ingredients.value.length === 0) return
+
+  const stockData = ingredients.value.reduce((acc, ingredient) => {
+    const stockLevel = ingredient.stock > 20 ? 'High' : ingredient.stock > 10 ? 'Medium' : ingredient.stock > 0 ? 'Low' : 'Out of Stock'
+    acc[stockLevel] = (acc[stockLevel] || 0) + 1
+    return acc
+  }, {})
+
+  const data = Object.entries(stockData).map(([level, count]) => ({
+    name: level,
+    value: count
+  }))
+
+  const option = {
+    title: {
+      text: 'Ingredient Stock Levels',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'item'
+    },
+    series: [
+      {
+        name: 'Stock Levels',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        avoidLabelOverlap: false,
+        itemStyle: {
+          borderRadius: 10,
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        label: {
+          show: false,
+          position: 'center'
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 20,
+            fontWeight: 'bold'
+          }
+        },
+        labelLine: {
+          show: false
+        },
+        data: data,
+        color: ['#28a745', '#ffc107', '#fd7e14', '#dc3545']
+      }
+    ]
+  }
+
+  inventoryChart.value.setOption(option)
+}
+
+const handleResize = () => {
+  nutritionTrendChart.value?.resize()
+  categoryChart.value?.resize()
+  weeklyComparisonChart.value?.resize()
+  inventoryChart.value?.resize()
+}
+
 // Computed properties
 const weeklyStats = computed(() => ({
   totalCalories: calculateTotalCalories(meals.value),
@@ -365,6 +741,9 @@ const loadData = async () => {
 
     meals.value = mealData
     ingredients.value = ingredientData
+
+    // Initialize charts after data is loaded
+    initializeCharts()
   } catch (err) {
     console.error('Error loading data:', err)
     error.value = 'Failed to load data. Please try again.'
@@ -497,6 +876,9 @@ onMounted(() => {
 
   loadData()
 
+  // Add window resize listener
+  window.addEventListener('resize', handleResize)
+
   // Watch for auth changes
   const unsubscribe = auth.onAuthStateChanged((user) => {
     if (user) {
@@ -505,9 +887,30 @@ onMounted(() => {
       meals.value = []
       ingredients.value = []
       loading.value = false
+      // Clear charts when user logs out
+      if (nutritionTrendChart.value) nutritionTrendChart.value.dispose()
+      if (categoryChart.value) categoryChart.value.dispose()
+      if (weeklyComparisonChart.value) weeklyComparisonChart.value.dispose()
+      if (inventoryChart.value) inventoryChart.value.dispose()
     }
   })
 
-  return () => unsubscribe()
+  return () => {
+    unsubscribe()
+    window.removeEventListener('resize', handleResize)
+    // Dispose charts when component unmounts
+    if (nutritionTrendChart.value) nutritionTrendChart.value.dispose()
+    if (categoryChart.value) categoryChart.value.dispose()
+    if (weeklyComparisonChart.value) weeklyComparisonChart.value.dispose()
+    if (inventoryChart.value) inventoryChart.value.dispose()
+  }
 })
+
+// Watch for data changes to update charts
+watch([meals, ingredients], () => {
+  if (nutritionTrendChart.value) updateNutritionTrendChart()
+  if (categoryChart.value) updateCategoryChart()
+  if (weeklyComparisonChart.value) updateWeeklyComparisonChart()
+  if (inventoryChart.value) updateInventoryChart()
+}, { deep: true })
 </script>
