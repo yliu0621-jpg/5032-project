@@ -34,9 +34,12 @@
 					<li v-if="userRole === 'user'" class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/meal-management">Meal Management</router-link>
 					</li>
-					<!-- <li v-if="userRole === 'admin'" class="nav-item">
-						<router-link class="nav-link" active-class="active" to="/dashboard">Dashboard</router-link>
-					</li> -->
+					<li v-if="userRole === 'admin'" class="nav-item">
+						<router-link class="nav-link active" active-class="active" to="/admin">
+							<i class="bi bi-shield-gear me-1"></i>
+							Admin Dashboard
+						</router-link>
+					</li>
 				</ul>
 			</div>
 		</div>

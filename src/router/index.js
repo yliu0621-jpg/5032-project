@@ -6,6 +6,7 @@ import FeedbackView from "@/views/FeedbackView.vue";
 import EmailVerificationView from "@/views/EmailVerificationView.vue";
 import MealManagementView from "@/views/MealManagementView.vue";
 import UserProfileView from "@/views/UserProfileView.vue";
+import AdminDashboardView from "@/views/AdminDashboardView.vue";
 import NotFoundView from "@/views/NotFoundView.vue";
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase";
@@ -63,6 +64,11 @@ const router = createRouter({
       path: "/profile",
       name: "profile",
       component: UserProfileView,
+    },
+    {
+      path: "/admin",
+      name: "admin",
+      component: AdminDashboardView,
     },
     {
       path: "/:pathMatch(.*)*",
