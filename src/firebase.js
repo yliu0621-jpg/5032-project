@@ -39,9 +39,7 @@ export async function generateContentStream(prompt, callback, finishCallback) {
 
 // Initialize Functions and connect to emulator for development
 export const functions = getFunctions(app);
-if (window.location.hostname === "localhost") {
-  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
-}
+connectFunctionsEmulator(functions, "127.0.0.1", 5001);
 export function parseUserRole(userString) {
   if (!userString) {
     return { username: "", role: "" };

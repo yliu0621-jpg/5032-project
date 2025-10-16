@@ -1,7 +1,10 @@
 <template>
 	<nav class="navbar navbar-expand-sm bg-primary-subtle">
 		<div class="container">
-			<router-link class="navbar-brand" to="/">MealPlan Hub</router-link>
+			<router-link class="navbar-brand d-flex align-items-center" to="/">
+				<img src="/logo.png" alt="Meal Logo" height="30" class="me-2">
+				MealPlan Hub
+			</router-link>
 
 			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
 				aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -11,7 +14,7 @@
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav ms-auto">
 					<li class="nav-item">
-						<span class="nav-link text-body-tertiary">{{ isOnline ? '🟢 Online' : '🔴 Offline' }}</span>
+						<span class="nav-link text-body-secondary">{{ isOnline ? '🟢 Online' : '🔴 Offline' }}</span>
 					</li>
 					<li v-if="userRole === ''" class="nav-item">
 						<router-link class="nav-link" active-class="active" to="/login">Login</router-link>
